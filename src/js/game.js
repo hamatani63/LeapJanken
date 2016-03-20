@@ -1,60 +1,92 @@
-// Store frame for motion functions
-var previousFrame = null;
-// Setup Leap loop with frame callback function
-var controllerOptions = {enableGestures: false, frameEventName: 'animationFrame'};
 // Capture hands
 var myhand = '';
 
 function captureLeapmotion(){
     var controller = new Leap.Controller();
-    controller.on('deviceFrame', function(frame){
-        if (frame.pointables.length >0){
-            if(frame.pointables[0].extended&&frame.pointables[1].extended&&frame.pointables[2].extended&&frame.pointables[3].extended&&frame.pointables[4].extended){
-                myhand = 'パー';
-            } else if(!frame.pointables[0].extended&&!frame.pointables[1].extended&&!frame.pointables[2].extended&&!frame.pointables[3].extended&&!frame.pointables[4].extended){
-                myhand = 'グー';
-            } else if(!frame.pointables[0].extended&&!frame.pointables[4].extended){
-                if(frame.pointables[1].extended||frame.pointables[2].extended||frame.pointables[3].extended){
-                        myhand = 'チョキ';
+    controller.on('connect', function(){
+        setInterval(function(){
+            var frame = controller.frame();
+            if (frame.pointables.length >0){
+                if(frame.pointables[0].extended
+                   &&frame.pointables[1].extended
+                   &&frame.pointables[2].extended
+                   &&frame.pointables[3].extended
+                   &&frame.pointables[4].extended){
+                    myhand = 'パー';
+                } else if(!frame.pointables[0].extended
+                          &&!frame.pointables[1].extended
+                          &&!frame.pointables[2].extended
+                          &&!frame.pointables[3].extended
+                          &&!frame.pointables[4].extended){
+                    myhand = 'グー';
+                } else if(!frame.pointables[0].extended
+                          &&!frame.pointables[4].extended){
+                    if(frame.pointables[1].extended
+                       ||frame.pointables[2].extended
+                       ||frame.pointables[3].extended){
+                            myhand = 'チョキ';
+                    }
+                } else {
+                    myhand = '';
                 }
             } else {
                 myhand = '';
             }
-        } else {
-            myhand = '';
-        }
-        // Store frame for motion functions
-        previousFrame = frame;
+        }, 16); // about 60FPS
     });
     controller.connect();
 }
 
+//// using Wii nunchuck via serial communication in Arduino
+//var serial;
+//var portName = '/dev/cu.usbmodemFA131'; // fill in your serial port name here
+//var inData = 710;
+//
+//function serverConnected() {
+//    println("We are connected!");
+//}
+//function gotList(thelist) {
+//  for (var i = 0; i < thelist.length; i++) {
+//    println(i + " " + thelist[i]);
+//  }
+//}
+//function gotOpen() {
+//  println("Serial Port is open!");
+//}
+//function gotError(theerror) {
+//  println(theerror);
+//}
+//function serialEvent() {
+//  inData = Number(serial.read());
+//}
+
+
 // Draw image with P5.js
-var time = 0;
 var ball01;
-var red = color(255, 0, 0, 200);
-var green = color(0, 255, 0, 200);
-var blue = color(0, 0, 255, 200);
     
 function setup() {
     createCanvas(1420, 780);
-    noStroke();
-    background(0, 0, 0);
     ball01 = new ball(710, 0, 50);
+    captureLeapmotion();
+    
+//    // Instantiate our SerialPort object
+//    serial = new p5.SerialPort();
+//    var portlist = serial.list();
+//    // Assuming our Arduino is connected, let's open the connection to it
+//    serial.open(portName);
+//    // Register some callbacks
+//    serial.on('connected', serverConnected);
+//    serial.on('list', gotList);
+//    serial.on('data', serialEvent);
+//    serial.on('error', gotError);
+//    serial.on('open', gotOpen);
 }
 
 function draw() {
     background(0);
-    captureLeapmotion();
-    drawLine(myhand)
-    
+    drawLine(myhand);
     ball01.move();
     ball01.display();
-    
-    time += 5;
-    if (time>780){
-        time = 0;
-    }
 }
 
 function drawLine(hand){
@@ -127,7 +159,7 @@ function ball(tempX, tempY, tempDiameter){
                 }
             }
         }
-        ellipse(710, this.y, this.diameter, this.diameter);
+        ellipse(this.x, this.y, this.diameter, this.diameter);
     }
 }
 
@@ -159,8 +191,4 @@ function decideWinLose(tempCpuHand, tempMyHand){
         }
     }
     return result;
-}
-
-function effect(){
-    
 }
